@@ -1,6 +1,7 @@
 const express = require('express');
 const path = require('path');
-const api = require('./public/assets/js/index')
+const fs = require('fs');
+const { v4: uuidv4 } = require('uuid');
 
 const PORT = process.env.PORT || 3001;
 
@@ -12,7 +13,6 @@ app.use(express.urlencoded({extended: true }));
 
 app.use(express.static('public'));
 
-app.use('/api', api);
 
 //Attach html
 
@@ -20,23 +20,57 @@ app.get('/notes', (req, res) =>
 res.sendFile(path.join(__dirname, 'public', 'notes.html'))
 );
 
-app.get('*', (req, res) => 
-res.sendFile(path.join(__dirname, 'public', 'index.html'))
-);
 
-//Get api's
+//Get API
 
-app.get('api/notes', (req, res) => {
-    console.info(`${req.method} request received from notes`);
-    readFromFile('./db/db.json').then((data) => res.json(JSON.parse(data)));
+app.get('/api/notes', (req, res) => {
+    try {
+        let data = fs.readFileSync('./db/db.json', 'utf8');
+
+    res.json(JSON.parse(data));
+
+    }catch (err) {
+        console.error(err);
+        res.status(500).send('Internal Server Error');
+    }
+    
+    
+    
 });
 
-//Post api's
+//Post API
 
-// app.post('api/notes', (req, res) => {
+app.post('/api/notes', (req, res) => {
+    const newNote = {
+        ...req.body,
+        id: uuidv4(),
+    };
+    try {
+        let data = fs.readFileSync('./db/db.json', 'utf8');
+         const dataJSON = JSON.parse(data);
 
-// })
+         dataJSON.push(newNote);
 
+         fs.writeFile('./db/db.json', JSON.stringify(dataJSON, null, 2), (err) => {
+            if (err) {
+            console.error(err);
+            return res.status(500).send('Internal Server Error');
+
+         }
+         res.status(201).json(newNote);
+
+        });
+    }catch(err) {
+        console.error(err);
+        res.status(500).send('Internal Server Error');
+
+    }
+
+});
+
+app.get("*", (req, res) =>
+  res.sendFile(path.join(__dirname, "public", "index.html"))
+);
 
 
 app.listen(PORT, () => 
