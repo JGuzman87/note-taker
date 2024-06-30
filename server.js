@@ -31,7 +31,7 @@ app.get('/api/notes', (req, res) => {
 
     }catch (err) {
         console.error(err);
-        res.status(500).send('Internal Server Error');
+        res.status(500).send('Error posting notes');
     }
     
     
@@ -54,7 +54,7 @@ app.post('/api/notes', (req, res) => {
          fs.writeFile('./db/db.json', JSON.stringify(dataJSON, null, 2), (err) => {
             if (err) {
             console.error(err);
-            return res.status(500).send('Internal Server Error');
+            return res.status(500).send('Error creating notes');
 
          }
          res.status(201).json(newNote);
@@ -62,7 +62,7 @@ app.post('/api/notes', (req, res) => {
         });
     }catch(err) {
         console.error(err);
-        res.status(500).send('Internal Server Error');
+        res.status(500).send('Error creating notes');
 
     }
 
